@@ -50,3 +50,4 @@
 
 # Compiled with flex .c file
 *.yy.c
+*.yy.cc

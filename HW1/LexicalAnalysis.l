@@ -2,13 +2,13 @@
     #include <iostream>
     #include <string>
     #include <cctype>
+    #include "Logic.cpp"
 
     int parenthesis = 0;
     std::string current_str = "";
 %}
 %option yylineno
 %option noyywrap
-%option main
 
 %x STR_COMMENT
 %x PAR_COMMENT
@@ -43,7 +43,7 @@ NOTTAB [a-zA-Z0-9\_\+\-\*\/\=\~\@\№\!\#\$\;\:\%\^\&\>\<\?\`\[\]\\\|\/\{\}\.\,\
 "("                   {BEGIN(PAR_COMMENT); parenthesis++;}
 "/*"                  {BEGIN(SLASH_COMMENT);}
 
-{UNEXPECTED}          {std::cout << "SYNTAX ERROR" << std::endl; return 0;}
+{UNEXPECTED}          {error(1);}
 
 <STRING>{SYMBD}+      {current_str += yytext;}
 <STRING>"\""          {std::cout << "Token class: STRING,   Token value: " << current_str << std::endl; current_str= ""; BEGIN(INITIAL);}
@@ -62,3 +62,5 @@ NOTTAB [a-zA-Z0-9\_\+\-\*\/\=\~\@\№\!\#\$\;\:\%\^\&\>\<\?\`\[\]\\\|\/\{\}\.\,\
 <SLASH_COMMENT>{TAB}
 <SLASH_COMMENT>{NOTTAB}
 %%
+
+#include "Main.cpp"
