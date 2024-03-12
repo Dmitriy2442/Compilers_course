@@ -22,21 +22,33 @@ DIGIT1 [1-9]
 SYMS [a-z]
 SYMBD [a-zA-Z0-9\_]
 SYMB [A-Z]
-KEYWORD ((e|E)(l|L)(s|S)(e|E))|(f(a|A)(l|L)(s|S)(e|E))|((i|I)(f|F))|((l|L)(o|O)(o|O)(p|P))|((t|T)(h|H)(e|E)(n|N))|((w|W)(h|H)(i|I)(l|L)(e|E))|((n|N)(o|P)(t|T))|(t(r|R)(u|U)(e|E))|((p|P)(r|R)(i|I)(n|N)(t|T))|((p|P)(r|R)(i|I)(n|N)(t|T)(l|L)(n|N))
 UNEXPECTED [\~\@\№\!\#\$\;\:\%\^\&\>\<\?\`\[\]\\\|\/\{\}\.\,\0\001\002\003\004]
 NOTTAB [a-zA-Z0-9\_\+\-\*\/\=\~\@\№\!\#\$\;\:\%\^\&\>\<\?\`\[\]\\\|\/\{\}\.\,\0\001\002\003\004]
 
 %%
-{TAB}                 
-{KEYWORD}             {std::cout << "Token class: KEYWORD,  Token value: " << yytext << std::endl;}
-{DIGIT}+              {std::cout << "Token class: NUMBER,   Token value: " << yytext << std::endl;}
-{SYMB}{SYMBD}*        {std::cout << "Token class: TYPE_ID,  Token value: " << yytext << std::endl;}
-{SYMS}{SYMBD}*        {std::cout << "Token class: VARIABLE, Token value: " << yytext << std::endl;}
-"+"                   {std::cout << "Token class: OP,       Token value: ADD" << std::endl;}
-"-"                   {std::cout << "Token class: OP,       Token value: SUB" << std::endl;}
-"*"                   {std::cout << "Token class: OP,       Token value: MUL" << std::endl;}
-"/"                   {std::cout << "Token class: OP,       Token value: DIV" << std::endl;}
-"="                   {std::cout << "Token class: OP,       Token value: ASSIGN" << std::endl;}
+{TAB}      
+
+(e|E)(l|L)(s|S)(e|E)                    {keyword_call("else");}
+f(a|A)(l|L)(s|S)(e|E)                   {keyword_call("false");}
+(i|I)(f|F)                              {keyword_call("if");}
+(l|L)(o|O)(o|O)(p|P)                    {keyword_call("loop");}
+(t|T)(h|H)(e|E)(n|N)                    {keyword_call("then");}
+(w|W)(h|H)(i|I)(l|L)(e|E)               {keyword_call("while");}
+(n|N)(o|P)(t|T)                         {keyword_call("not");}
+t(r|R)(u|U)(e|E)                        {keyword_call("true");}
+(p|P)(r|R)(i|I)(n|N)(t|T)               {keyword_call("print");}
+(p|P)(r|R)(i|I)(n|N)(t|T)(l|L)(n|N)     {keyword_call("println");}
+
+{DIGIT}+              {number_call();}
+{SYMB}{SYMBD}*        {type_call();}
+{SYMS}{SYMBD}*        {var_call();}
+
+
+"+"                   {operation_call('+');}
+"-"                   {operation_call('-');}
+"*"                   {operation_call('*');}
+"/"                   {operation_call('/');}
+"="                   {operation_call('=');}
 
 "\""                  {BEGIN(STRING);}
 "--"                  {BEGIN(STR_COMMENT);}
@@ -44,23 +56,30 @@ NOTTAB [a-zA-Z0-9\_\+\-\*\/\=\~\@\№\!\#\$\;\:\%\^\&\>\<\?\`\[\]\\\|\/\{\}\.\,\
 "/*"                  {BEGIN(SLASH_COMMENT);}
 
 {UNEXPECTED}          {error(1);}
+.
 
 <STRING>{SYMBD}+      {current_str += yytext;}
 <STRING>"\""          {std::cout << "Token class: STRING,   Token value: " << current_str << std::endl; current_str= ""; BEGIN(INITIAL);}
 <STRING>"\n"          {current_str += "\\n";}
+<STRING>.
 
 <STR_COMMENT>"\n"     {BEGIN(INITIAL);}
 <STR_COMMENT>{TABNON}
 <STR_COMMENT>{NOTTAB}
+<STR_COMMENT>.
 
+<PAR_COMMENT><<EOF>>  {error(2);}
 <PAR_COMMENT>"("      {parenthesis++;}
 <PAR_COMMENT>")"      {parenthesis--; if (parenthesis == 0) {BEGIN(INITIAL);}}
 <PAR_COMMENT>{TAB}
 <PAR_COMMENT>{NOTTAB}
+<PAR_COMMENT>.
 
-<SLASH_COMMENT>"*/"   {BEGIN(INITIAL);}
+<SLASH_COMMENT><<EOF>> {error(2);}
+<SLASH_COMMENT>"*/"    {BEGIN(INITIAL);}
 <SLASH_COMMENT>{TAB}
 <SLASH_COMMENT>{NOTTAB}
+<SLASH_COMMENT>.
 %%
 
 #include "Main.cpp"
