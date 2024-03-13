@@ -1,4 +1,9 @@
-#include "stdlib.h"
+#include "Logic.hpp"
+
+extern char* yytext;
+extern int yylineno;
+extern int parenthesis;
+extern std::string current_str;
 
 void error(int code) {
     switch (code)
@@ -55,4 +60,28 @@ void type_call() {
 
 void var_call() {
     std::cout << "Token class: VARIABLE, Token value: " << yytext << std::endl;
+}
+
+void string_record() {
+    current_str += yytext;
+}
+
+void string_recordln() {
+    current_str += "\\n";
+}
+
+void string_close() {
+    std::cout << "Token class: STRING,   Token value: " << current_str << std::endl; 
+    current_str= "";
+}
+
+void par_open() {
+    parenthesis++;
+}
+
+int par_close() {
+    parenthesis--;
+    if (parenthesis == 0)
+        return 1;
+    return 0;
 }

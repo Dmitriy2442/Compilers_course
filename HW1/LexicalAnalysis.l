@@ -2,7 +2,7 @@
     #include <iostream>
     #include <string>
     #include <cctype>
-    #include "Logic.cpp"
+    #include "Logic.hpp"
 
     int parenthesis = 0;
     std::string current_str = "";
@@ -52,15 +52,15 @@ t(r|R)(u|U)(e|E)                        {keyword_call("true");}
 
 "\""                  {BEGIN(STRING);}
 "--"                  {BEGIN(STR_COMMENT);}
-"("                   {BEGIN(PAR_COMMENT); parenthesis++;}
+"("                   {BEGIN(PAR_COMMENT); par_open();}
 "/*"                  {BEGIN(SLASH_COMMENT);}
 
 {UNEXPECTED}          {error(1);}
 .
 
-<STRING>{SYMBD}+      {current_str += yytext;}
-<STRING>"\""          {std::cout << "Token class: STRING,   Token value: " << current_str << std::endl; current_str= ""; BEGIN(INITIAL);}
-<STRING>"\n"          {current_str += "\\n";}
+<STRING>{SYMBD}+      {string_record();}
+<STRING>"\""          {string_close(); BEGIN(INITIAL);}
+<STRING>"\n"          {string_recordln();}
 <STRING>.
 
 <STR_COMMENT>"\n"     {BEGIN(INITIAL);}
@@ -69,8 +69,8 @@ t(r|R)(u|U)(e|E)                        {keyword_call("true");}
 <STR_COMMENT>.
 
 <PAR_COMMENT><<EOF>>  {error(2);}
-<PAR_COMMENT>"("      {parenthesis++;}
-<PAR_COMMENT>")"      {parenthesis--; if (parenthesis == 0) {BEGIN(INITIAL);}}
+<PAR_COMMENT>"("      {par_open();}
+<PAR_COMMENT>")"      {if (par_close()) {BEGIN(INITIAL);}}
 <PAR_COMMENT>{TAB}
 <PAR_COMMENT>{NOTTAB}
 <PAR_COMMENT>.
